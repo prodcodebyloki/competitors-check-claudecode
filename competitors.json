@@ -1,0 +1,12 @@
+[
+  {
+    "name": "OpenAI",
+    "url": "https://openai.com/news",
+    "about": "https://openai.com/about"
+  },
+  {
+    "name": "Mistral",
+    "url": "https://mistral.ai/news/",
+    "about": "https://mistral.ai/company/"
+  }
+]
