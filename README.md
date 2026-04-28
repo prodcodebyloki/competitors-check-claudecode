@@ -1,83 +1,206 @@
-# Competitor Intelligence Agent
+# 🕵️ Competitor Intelligence Agent
 
-## What this is NOT
-
-Most competitor tools are **news collators** — they scrape headlines, aggregate RSS feeds, and dump a list of links. You still have to read everything, form your own opinions, and figure out what it means for your product.
-
-This is different.
+> A reasoning agent built on Claude Code that turns competitor pages into product decisions — not a news feed.
 
 ---
 
-## What this actually does
+## 🚫 What this is NOT
 
-This agent is a **reasoning layer on top of your own context**. It doesn't just fetch — it thinks.
+Most competitor tools are **news collators** — they scrape headlines, aggregate RSS feeds, and dump a list of links at you. You still have to read everything, form your own opinions, and figure out what it means for your product.
 
-Every skill loads your `context/` folder (product overview, features, pricing) before it does anything. That means when it reads a competitor's page, it already knows who you are, what you've built, and what you charge. The output is never "here's what OpenAI shipped" — it's "here's what OpenAI shipped, and here's what it means for you specifically."
+This is different.
 
 | News Collator | This Agent |
 |---|---|
 | Fetches headlines | Reads + reasons |
 | No product context | Knows your features, pricing, roadmap |
-| Generic summaries | Gaps, risks, and opportunities relative to you |
+| Generic summaries | Gaps, risks, opportunities — relative to *you* |
 | You interpret the signal | Signal is pre-interpreted |
 | Same output for everyone | Output is unique to your product |
 
 ---
 
-## Why token cost stays low
+## 🧠 What it actually does
 
-Three reasons:
+This agent is a **reasoning layer on top of your own context**. Every skill loads your `context/` folder before doing anything. That means when it reads a competitor's page, it already knows who you are, what you've built, and what you charge.
 
-**1. Controlled browsing.**
-The agent only visits URLs you explicitly list in `competitors.json`. No open-ended web search, no crawling, no pagination. Two pages per competitor per run — that's it.
-
-**2. Structured prompts.**
-Every skill has a tight output format. The model isn't asked to "write everything you know" — it fills a defined template. Short inputs, short outputs, no padding.
-
-**3. Context is files, not conversation.**
-Your product knowledge lives in `context/` as flat markdown files. They're read once per invocation, not re-explained in every message. As you refine those files, the quality goes up — the token count doesn't.
+The output is never _"here's what OpenAI shipped"_ — it's _"here's what OpenAI shipped, and here's what it means for you specifically."_
 
 ---
 
-## How context improves over time
-
-This is the compounding advantage.
-
-On day one, `context/` has your basic product overview. The agent gives you decent analysis.
-
-Over weeks, you:
-- Add pricing nuance you've learned from sales calls
-- Add features your roadmap moved forward or killed
-- Add a "known weaknesses" section after a lost deal
-- Add a new competitor to `competitors.json`
-
-The agent doesn't need to be retrained. It reads your files fresh every run. Every improvement you make to your context directly improves every future report, brainstorm, and customer analysis — with no extra cost.
+## 📁 Folder Structure
 
 ```
-Week 1:  context/ = basic overview     →  generic but useful analysis
-Week 4:  context/ = detailed + honest  →  sharp, specific recommendations
-Week 12: context/ = battle-tested      →  analysis your team trusts
+.
+├── 📄 competitors.json          # List of competitors to track
+├── 📄 watch.sh                  # Automation script — runs weekly report via Claude CLI
+│
+├── 📂 context/                  # YOUR product knowledge — the agent reads this first, every time
+│   ├── product-overview.md      # What your product is, vision, target market, differentiators
+│   ├── features.md              # Feature list, architecture, roadmap, known gaps
+│   └── pricing.md               # Pricing tiers, model, competitive positioning
+│
+├── 📂 .claude/                  # Claude Code configuration (auto-loaded)
+│   ├── CLAUDE.md                # Project rules and instructions for the agent
+│   └── skills/                  # Slash-command skills (invokable inside Claude Code)
+│       ├── compare/
+│       ├── insights-builder/
+│       ├── brainstorm/
+│       └── customer-queries/
+│
+├── 📂 skills/                   # Human-readable copies of skills (reference / copy-paste)
+│   ├── compare.md
+│   ├── insights-builder.md
+│   ├── brainstorm.md
+│   └── customer-queries.md
+│
+└── 📂 reports/                  # Generated reports land here (auto-named by date)
+    └── report-YYYY-MM-DD.md
 ```
-
-Reports accumulate in `reports/`. Over time, `/compare` diffs not just two pages — it diffs two moments in your competitive landscape, with your own product evolution as the reference point.
 
 ---
 
-## The four skills and when to use them
+## 📂 Folder Guide — What to change, what to leave alone
 
-| Skill | When to use |
+### `competitors.json` — 🔧 Edit freely
+The master list of competitors. Each entry has three fields:
+
+```json
+{
+  "name": "OpenAI",
+  "url": "https://openai.com/news",
+  "about": "https://openai.com/about"
+}
+```
+
+- **`url`** — the one page to track (blog, changelog, news page)
+- **`about`** — their company/about page for context
+- **Add** as many competitors as you want
+- **Change** URLs anytime — the next report will use the new ones
+- ⚠️ The agent browses **only** these URLs — no open web search
+
+---
+
+### `context/` — 🔧 Edit often, the more honest the better
+This is the brain of the agent. Every skill reads these files before generating output. The richer and more accurate these are, the sharper every analysis becomes.
+
+| File | What to put in it |
 |---|---|
-| `./watch.sh` / `/compare` | Monday morning — what changed last week |
-| `/insights-builder` | Before a sales call, board deck, or pricing review |
-| `/brainstorm <idea>` | Before writing a spec — does this already exist? does it differentiate? |
-| `/customer-queries` | After support calls or churned accounts — what pain maps to competitive gaps |
+| `product-overview.md` | Your product's purpose, target market, differentiators, stage |
+| `features.md` | Full feature list, architecture notes, roadmap themes, known gaps |
+| `pricing.md` | All tiers with prices, billing model, competitive positioning |
+
+**What to update:**
+- After a pricing change → update `pricing.md`
+- After shipping or killing a feature → update `features.md`
+- After a lost deal or new ICP insight → update `product-overview.md`
+- After adding a competitor → no changes needed here, just update `competitors.json`
 
 ---
 
-## Setup in 3 steps
+### `reports/` — 📖 Read only, never edit manually
+All generated reports land here as `report-YYYY-MM-DD.md`. The `/compare` skill diffs the two most recent files in this folder — so the more weeks of reports you accumulate, the richer the comparison history.
 
-1. Edit `competitors.json` — add your real competitors with their key page URLs
-2. Fill `context/` — product overview, features, pricing (be honest about gaps)
-3. Run `./watch.sh` — first report lands in `reports/`
+**Don't edit these files** — they're the historical record the agent reasons against.
+
+---
+
+### `.claude/skills/` — 🔧 Extend when needed
+Each subfolder is a Claude Code slash command. The `skill.md` file contains the prompt and output instructions. You can:
+- Edit existing skills to change output format or add new rules
+- Add a new folder with a `skill.md` to create a new slash command
+- Skills auto-load when you open the project in Claude Code
+
+---
+
+### `skills/` — 📖 Reference copies
+Plain markdown versions of each skill — no frontmatter, no Claude-specific syntax. Use these to understand what a skill does, copy the prompt elsewhere, or share with teammates who don't use Claude Code.
+
+---
+
+## ⚡ Skills
+
+Four skills ship out of the box. More can be added by dropping a new folder into `.claude/skills/`.
+
+### `/compare` — Weekly diff report
+Reads the two most recent reports in `reports/` and generates a structured diff per competitor. Flags pricing changes, new features, and removed content. Saves result back to `reports/`.
+
+**Use it:** Monday morning standup, weekly competitive review.
+
+---
+
+### `/insights-builder [competitor]` — Deep comparative study
+Loads your full `context/` + competitor pages and produces a side-by-side analysis: feature gaps, positioning differences, pricing delta, strategic opportunities, and recommended actions.
+
+**Use it:** Before a sales call, board deck, pricing review, or fundraise.
+
+---
+
+### `/brainstorm <idea>` — Idea validation against the competitive landscape
+Takes your idea as input, checks it against your existing features, product vision, pricing model, and what competitors already do. Returns a differentiation score (1–5) and recommended next steps.
+
+**Use it:** Before writing a spec — does this already exist? Does it actually differentiate?
+
+---
+
+### `/customer-queries` — Pain point extractor
+Accepts pasted customer feedback, support tickets, or screenshots. Maps pain points to your feature gaps, flags where competitors already solve the problem (churn risk), and outputs prioritized actions.
+
+**Use it:** After support calls, churned accounts, or user interviews.
+
+---
+
+### ➕ Adding more skills
+Create a new folder under `.claude/skills/<your-skill-name>/` with a `skill.md` file:
+
+```markdown
+---
+name: your-skill-name
+description: >
+  One-liner that tells Claude when to trigger this skill.
+  Trigger: /your-skill-name, "keyword", "another phrase".
+---
+
+# Your skill instructions here
+```
+
+Then invoke it in Claude Code with `/your-skill-name`.
+
+---
+
+## 💰 Why token cost stays low
+
+**1. Controlled browsing** — only visits URLs in `competitors.json`. Two pages per competitor per run, nothing more.
+
+**2. Structured output** — every skill fills a defined template. No open-ended generation, no padding.
+
+**3. Context is files** — your product knowledge is flat markdown, read once per invocation. Richer context = better output, not higher cost.
+
+---
+
+## 📈 How it gets smarter over time
+
+The agent reads your `context/` files fresh on every run — no retraining required.
+
+```
+Week 1:  context/ = basic overview     →  useful but generic
+Week 4:  context/ = detailed + honest  →  sharp, specific recommendations
+Week 12: context/ = battle-tested      →  analysis your whole team trusts
+```
+
+Every improvement to `context/` immediately improves every skill. Reports accumulate in `reports/` — over time `/compare` isn't just diffing two pages, it's diffing two moments in your competitive landscape.
+
+---
+
+## 🚀 Setup in 3 steps
+
+1. **Edit `competitors.json`** — replace placeholder entries with your real competitors and their key page URLs
+2. **Fill `context/`** — add your product overview, feature list, and pricing (be honest about gaps — that's where the value is)
+3. **Run `./watch.sh`** — first report lands in `reports/`
+
+```bash
+./watch.sh                           # full report, all competitors
+./watch.sh --competitor "OpenAI"     # single competitor
+```
 
 Everything else improves from there.
