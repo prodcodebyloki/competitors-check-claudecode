@@ -1,5 +1,7 @@
 # 🕵️ Competitor Intelligence Agent
 
+![Competitor Intelligence Agent](assets/banner.png)
+
 > A reasoning agent built on Claude Code that turns competitor pages into product decisions — not a news feed.
 
 ---
