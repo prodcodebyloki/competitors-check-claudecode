@@ -1,0 +1,1 @@
+# competitors-check-claudecode
