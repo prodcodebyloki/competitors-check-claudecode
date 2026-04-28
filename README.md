@@ -152,6 +152,13 @@ Accepts pasted customer feedback, support tickets, or screenshots. Maps pain poi
 
 ---
 
+### `/session-summary` — End-of-session recap
+Reflects on the current session and produces a structured summary: what was done, decisions made, context files updated, competitors researched, reports generated, and open threads. Saves to `reports/session-YYYY-MM-DD.md`.
+
+**Use it:** End of any working session — creates a handoff note for your next session or your team.
+
+---
+
 ### ➕ Adding more skills
 Create a new folder under `.claude/skills/<your-skill-name>/` with a `skill.md` file:
 

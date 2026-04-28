@@ -24,6 +24,7 @@
 | `/insights-builder` | Deep comparative study: MyProduct vs competitor(s) |
 | `/brainstorm` | Validate idea against features + competitor landscape |
 | `/customer-queries` | Extract pain points from customer text or screenshot |
+| `/session-summary` | Summarize the session — decisions, changes, open threads; save to reports/ |
 
 ## Automation
 
